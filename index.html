@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel 10: Executive Review</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Warm Neutral (BG: neutral-50, Cards: white, Text: neutral-800, Accents: blue-600, green-500, red-500) -->
+    <!-- Application Structure Plan: A thematic, single-page dashboard. A sticky nav (Home, The Lure, The Failures, Conclusion) allows smooth scrolling. 'Home' provides a high-level visual summary (Radar Chart of issues). 'The Lure' details the positives (with a Bar Chart for battery and new section for Photo Quality). 'The Failures' uses interactive tabs to separate 'Software' (in an accordion, updated to include GPU/CPU issues) from 'Hardware' (the tipping point, updated to include Video Quality comparison videos). 'Conclusion' presents a final scorecard table. This structure is chosen to allow execs to get the summary first, then drill down into specific areas (positives, software vs. hardware failures) at their own pace, which is more usable than a linear report. -->
+    <!-- Visualization & Content Choices: 1. Report Info: Overall issue severity. Goal: Inform/Summarize. Viz: Radar Chart. Interaction: Tooltip. Justification: Synthesizes qualitative complaints into a single quantitative-style visual for a high-level dashboard. Library: Chart.js. 2. Report Info: Battery life comparison. Goal: Compare. Viz: Horizontal Bar Chart. Interaction: Tooltip. Justification: Simple, clear visual for the report's most concrete data point. Library: Chart.js. 3. Report Info: Failure categories. Goal: Organize. Viz: Tabs (HTML/JS). Interaction: Click to toggle. Justification: Separates software/hardware issues for clearer analysis. 4. Report Info: Software issues. Goal: Organize. Viz: Accordion (HTML/JS). Interaction: Click to expand. Justification: Condenses multiple issues into a clean list, now including CPU/GPU performance. 5. Report Info: AirPods test & Video Comparison. Goal: Compare/Evidenc. Viz: Video/HTML/CSS diagram. Interaction: Play video. Justification: Provides direct visual and anecdotal evidence of core compatibility failures. 6. Report Info: Final verdict. Goal: Summarize. Viz: HTML Table. Justification: Classic exec-summary format. CONFIRMATION: NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+                max-height: 400px;
+            }
+        }
+        .nav-link {
+            @apply px-3 py-2 text-neutral-600 hover:text-blue-600 transition-colors duration-200;
+        }
+        .nav-link.active {
+            @apply text-blue-600 font-semibold border-b-2 border-blue-600;
+        }
+        .tab-link {
+            @apply px-4 py-2 text-lg font-medium text-neutral-600 border-b-2 border-transparent hover:text-blue-600 hover:border-blue-300 transition-all duration-200;
+        }
+        .tab-link.active {
+            @apply text-blue-600 border-blue-600;
+        }
+        /* Full Review Section Typography */
+        #full-review-content {
+            font-size: 1.125rem;
+            line-height: 1.75;
+        }
+        #full-review-content p {
+            margin-bottom: 1.5rem;
+        }
+        #full-review-content h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #262626;
+        }
+        #full-review-content h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #404040;
+        }
+        #full-review-content ul, #full-review-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        #full-review-content li {
+            margin-bottom: 0.5rem;
+        }
+        #full-review-content strong {
+            font-weight: 600;
+            color: #262626;
+        }
+        #full-review-content em {
+            font-style: italic;
+        }
+        @media (min-width: 768px) {
+            #full-review-content {
+                font-size: 1.125rem;
+            }
+        }
+        /* Table Styling for Full Review */
+        #full-review-content table {
+            margin: 1.5rem 0;
+        }
+        #full-review-content table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+        #full-review-content table tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        #full-review-content table td,
+        #full-review-content table th {
+            padding: 0.75rem;
+            border: 1px solid #d4d4d4;
+        }
+    </style>
+</head>
+<body class="bg-neutral-50 text-neutral-800 font-sans leading-relaxed">
+
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center items-center h-16">
+            <div class="flex space-x-4 sm:space-x-8">
+                <a href="#home" class="nav-link active" data-target="home">Summary</a>
+                <a href="#lure" class="nav-link" data-target="lure">The Lure</a>
+                <a href="#failures" class="nav-link" data-target="failures">The Failures</a>
+                <a href="#conclusion" class="nav-link" data-target="conclusion">Conclusion</a>
+                <a href="full-review.html" class="nav-link">Full Review</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+
+        <section id="home" class="text-center mb-16 sm:mb-24 pt-16 -mt-16">
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">Pixel 10: Brilliant Potential, Compromised Execution</h1>
+            <p class="text-lg sm:text-xl text-neutral-600 max-w-3xl mx-auto mb-8">
+                This application provides an interactive review of the Pixel 10 from the perspective of a power user transitioning from the Apple ecosystem. It summarizes the key drivers, major failures, and the ultimate decision to return to iPhone, providing a visual dashboard of the core issues.
+            </p>
+            <div class="bg-white p-6 rounded-2xl shadow-lg max-w-3xl mx-auto">
+                <h2 class="text-2xl font-semibold mb-4 text-left">Overall Issue Severity Dashboard</h2>
+                <p class="text-neutral-600 text-left mb-6">This chart synthesizes the qualitative user experience into a quantitative severity score (out of 10) for the primary issues that led to the device being returned.</p>
+                <div class="chart-container">
+                    <canvas id="severityChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="lure" class="mb-16 sm:mb-24 pt-16 -mt-16">
+            <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">The Lure: A Compelling Proposition</h2>
+            <p class="text-lg text-neutral-600 text-center max-w-3xl mx-auto mb-12">
+                This section explores the key "wins" and positive features that made the Pixel 10 a highly attractive alternative to the iPhone, validating Google's marketing and innovation in key areas, particularly in computational photography.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-semibold mb-2 text-green-700">Major Win: Superior Still Photography</h3>
+                        <p class="text-neutral-600">The Pixel 10 produces **amazing pictures** thanks to the TPU upgrades, enabling substantial and fast on-device image processing. This computational photography is a clear market leader.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-semibold mb-2 text-green-700">Clear Win: AI Feature Advantage</h3>
+                        <p class="text-neutral-600">Features like <strong class="font-medium">Circle to Search</strong>, <strong class="font-medium">Google Lens</strong>, and <strong class="font-medium">Best Take</strong> confirmed Google is operating years ahead of Apple in on-device intelligence and usability.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-semibold mb-2 text-green-700">Positive: Superior Battery Life</h3>
+                        <p class="text-neutral-600">The Pixel 10's battery sustained a full day of heavy use, a significant improvement over the iPhone 15 Pro, which required charging twice daily.</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Data: Avg. Daily Charges</h3>
+                    <div class="chart-container" style="height: 250px; max-height: 300px;">
+                        <canvas id="batteryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="failures" class="mb-16 sm:mb-24 pt-16 -mt-16">
+            <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">The Failures: Daily Reliability Collapse</h2>
+            <p class="text-lg text-neutral-600 text-center max-w-3xl mx-auto mb-8">
+                Despite the positives, the daily user experience rapidly declined. This section details the critical failures, which are separated into two categories: pervasive software instability and critical hardware/media compatibility.
+            </p>
+            
+            <nav class="flex justify-center border-b border-neutral-300 mb-8">
+                <button class="tab-link active" data-tab-target="softwareTab">Software Instability & CPU/GPU</button>
+                <button class="tab-link" data-tab-target="hardwareTab">Critical Media & Hardware Failure</button>
+            </nav>
+
+            <div id="softwareTab" class="tab-content">
+                <p class="text-neutral-600 text-center max-w-2xl mx-auto mb-8">A pervasive lack of reliability across Google's own services, third-party apps, and performance bottlenecks created constant, daily friction. Click each item below to expand.</p>
+                <div class="max-w-3xl mx-auto space-y-4" id="accordionContainer">
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <button class="accordion-toggle w-full flex justify-between items-center text-left p-5">
+                            <span class="text-xl font-semibold text-red-700">Critical Failure: Gemini/Assistant</span>
+                            <span class="accordion-icon text-2xl font-light text-blue-600">+</span>
+                        </button>
+                        <div class="accordion-content p-5 bg-neutral-50 hidden">
+                            <p class="text-neutral-600">The most detrimental failure. The device failed to reliably execute automated tasks. When initiating commands (e.g., "Hey Google, call [name]"), the Assistant frequently ignored input, requiring 3-4 manual attempts. This undermines the core "smart" functionality.</p>
+                            <p class="text-sm text-neutral-500 mt-4"><strong>External Validation:</strong> User forums often discuss these responsiveness gaps, citing failures in background process consistency.</p>
+                        </div>
+                    </div>
+                     <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <button class="accordion-toggle w-full flex justify-between items-center text-left p-5">
+                            <span class="text-xl font-semibold text-red-700">Failure: CPU/GPU Performance Drag</span>
+                            <span class="accordion-icon text-2xl font-light text-blue-600">+</span>
+                        </button>
+                        <div class="accordion-content p-5 bg-neutral-50 hidden">
+                            <p class="text-neutral-600">While the TPU (Tensor Processing Unit) is excellent for photography, a palpable performance drawback was noted with the CPU and GPU. This resulted in lag during intense tasks, such as high-fidelity gaming or rapid multitasking, suggesting a thermal or design compromise.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <button class="accordion-toggle w-full flex justify-between items-center text-left p-5">
+                            <span class="text-xl font-semibold text-red-700">Failure: Google App Instability (YouTube)</span>
+                            <span class="accordion-icon text-2xl font-light text-blue-600">+</span>
+                        </button>
+                        <div class="accordion-content p-5 bg-neutral-50 hidden">
+                            <p class="text-neutral-600">Even Google's own flagship applications were unstable. YouTube suffered from multiple, recurring bugs that required app restarts, including:</p>
+                            <ul class="list-disc list-inside ml-4 mt-2 text-neutral-600">
+                                <li>The footer menu would randomly disappear.</li>
+                                <li>The screen would inexplicably dim and remain locked in a dimmed state.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <button class="accordion-toggle w-full flex justify-between items-center text-left p-5">
+                            <span class="text-xl font-semibold text-red-700">Failure: Pervasive Third-Party App Instability</span>
+                            <span class="accordion-icon text-2xl font-light text-blue-600">+</span>
+                        </button>
+                        <div class="accordion-content p-5 bg-neutral-50 hidden">
+                            <p class="text-neutral-600">The launch week presented the worst software experience encountered on a new device. Core apps like Discord crashed consistently (5+ times on day one). Instagram suffered from chronic bugs, such as randomly failing to load stories.</p>
+                            <p class="text-sm text-neutral-500 mt-4"><strong>External Validation:</strong> Confirms the market perception that day-one application optimization on new Android hardware lags significantly behind the stable iOS ecosystem.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="hardwareTab" class="tab-content hidden">
+                <p class="text-neutral-600 text-center max-w-2xl mx-auto mb-8">Two separate issues related to media consumption and audio peripheral compatibility proved fatal to daily use, serving as the ultimate reasons for the platform switch.</p>
+                <div class="bg-white rounded-2xl shadow-lg max-w-5xl mx-auto p-6 sm:p-8 space-y-10">
+
+                    <!-- Video Comparison -->
+                    <div class="border-b pb-6 border-neutral-200">
+                        <h3 class="text-2xl font-semibold text-red-700 text-center mb-6">Critical Media Failure: Video Quality</h3>
+                        <p class="text-neutral-600 mb-6 max-w-4xl mx-auto">Despite excellent still photos, the Pixel 10's video capture quality is significantly lacking. Close inspection reveals **fluttering and over-processing**, creating an "AI" or unnatural feel that lacks the crisp, fluid realism of the iPhone video. The video below demonstrates this difference:</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="flex flex-col items-center">
+                                <h4 class="font-bold text-xl mb-2">iPhone 15 Pro (Fluid Baseline)</h4>
+                                <video controls class="w-full rounded-lg shadow-md max-w-md" src="videos/Iphone.MOV" type="video/quicktime">Your browser does not support the video tag.</video>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <h4 class="font-bold text-xl mb-2">Pixel 10 (Processing Flaws)</h4>
+                                <video controls class="w-full rounded-lg shadow-md max-w-md" src="videos/pxl.mp4" type="video/mp4">Your browser does not support the video tag.</video>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Audio Static Comparison -->
+                    <div>
+                        <h3 class="text-2xl font-semibold text-red-700 text-center mb-6">The Tipping Point: Critical Audio Peripheral Static</h3>
+                        <p class="text-neutral-600 mb-6 max-w-4xl mx-auto">As a heavy wireless earbud user, the experience with **Apple AirPods** (connecting via standard AAC Bluetooth) was plagued by **immense and distracting static noise**, particularly noticeable during video playback pauses. This compatibility failure made daily audio consumption unbearable.</p>
+                        
+                        <h4 class="text-lg font-semibold text-center mb-4">A/B Test Confirmation (Audio)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-xl mx-auto">
+                            <div class="border border-red-300 bg-red-50 p-4 rounded-lg">
+                                <h5 class="font-bold text-lg text-center mb-2">Pixel 10 ➔ AirPods</h5>
+                                <div class="text-center text-6xl mb-2">👎</div>
+                                <p class="text-center text-red-700 font-semibold">RESULT: IMMENSE STATIC</p>
+                                <p class="text-sm text-neutral-600 text-center mt-2">Troubleshooting (AAC vs. SBC codecs) provided no change.</p>
+                            </div>
+                            <div class="border border-green-300 bg-green-50 p-4 rounded-lg">
+                                <h5 class="font-bold text-lg text-center mb-2">iPhone 15 Pro ➔ AirPods</h5>
+                                <div class="text-center text-6xl mb-2">👍</div>
+                                <p class="text-center text-green-700 font-semibold">RESULT: PERFECT AUDIO</p>
+                                <p class="text-sm text-neutral-600 text-center mt-2">Cross-testing confirmed the issue lay with the Pixel 10.</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-neutral-500 mt-6 text-center"><strong>External Validation:</strong> This specific static issue with Apple Bluetooth peripherals is a documented point of frustration in public Pixel forums, demonstrating a systemic, known gap in hardware compatibility.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusion" class="pt-16 -mt-16">
+            <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">Conclusion: Innovation vs. Reliability</h2>
+            <p class="text-lg text-neutral-600 text-center max-w-3xl mx-auto mb-8">
+                This final section summarizes the experience with a comparative scorecard. The Pixel 10 is an **innovation leader** but a **reliability lagger**. For an enterprise user, feature innovation cannot compensate for an unstable foundation, forcing a return to the stable iPhone ecosystem.
+            </p>
+            <div class="bg-white rounded-2xl shadow-lg max-w-3xl mx-auto overflow-hidden">
+                <h3 class="text-2xl font-semibold text-center p-6">Final Scorecard: Pixel 10 vs. iPhone 15 Pro</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-max text-left">
+                        <thead>
+                            <tr class="bg-neutral-100">
+                                <th class="p-4 font-semibold">Feature</th>
+                                <th class="p-4 font-semibold text-center">Pixel 10</th>
+                                <th class="p-4 font-semibold text-center">iPhone 15 Pro (User Baseline)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-neutral-200">
+                            <tr>
+                                <td class="p-4 font-medium">AI & Innovation</td>
+                                <td class="p-4 text-center text-green-600 font-bold">EXCELLENT (Winner)</td>
+                                <td class="p-4 text-center text-neutral-600">Good</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-medium">Still Photo Quality</td>
+                                <td class="p-4 text-center text-green-600 font-bold">EXCELLENT (Winner)</td>
+                                <td class="p-4 text-center text-neutral-600">Very Good</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-medium">Video Quality / Realism</td>
+                                <td class="p-4 text-center text-red-600 font-bold">POOR (Fluttering)</td>
+                                <td class="p-4 text-center text-green-600">Excellent (Crisp/Fluid)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-medium">CPU/GPU Performance</td>
+                                <td class="p-4 text-center text-red-600 font-bold">POOR (Lag/Drag)</td>
+                                <td class="p-4 text-center text-green-600">Excellent (Fluid)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-medium">System Reliability (Assistant)</td>
+                                <td class="p-4 text-center text-red-600 font-bold">CRITICAL FAILURE</td>
+                                <td class="p-4 text-center text-green-600">Excellent (Stable)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-medium">Peripheral Compatibility (Audio)</td>
+                                <td class="p-4 text-center text-red-600 font-bold">CRITICAL FAILURE (Static)</td>
+                                <td class="p-4 text-center text-green-600">Excellent (Stable)</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-neutral-50">
+                                <td class="p-4 font-bold">Final Verdict</td>
+                                <td class="p-4 text-center font-bold text-red-600">Compromised Execution</td>
+                                <td class="p-4 text-center font-bold text-green-600">Reliable Execution</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center p-8 text-neutral-500 text-sm mt-16">
+        <p>Made by <a href="https://www.linkedin.com/in/keith-john/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-semibold">Keith John</a></p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chartJsConfig = {
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#404040',
+                            font: { size: 14 }
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: '#000000',
+                        titleColor: '#FFFFFF',
+                        bodyColor: '#FFFFFF',
+                        borderColor: '#FFFFFF',
+                        borderWidth: 1,
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    r: {
+                        angleLines: { color: '#e5e5e5' },
+                        grid: { color: '#e5e5e5' },
+                        pointLabels: {
+                            color: '#404040',
+                            font: { size: 14 }
+                        },
+                        ticks: {
+                            color: '#737373',
+                            backdropColor: '#f5f5f5',
+                            stepSize: 2
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#404040', font: { size: 14 } }
+                    },
+                    y: {
+                        grid: { color: '#e5e5e5' },
+                        ticks: { color: '#404040', font: { size: 14 } }
+                    }
+                }
+            };
+            
+            const severityCtx = document.getElementById('severityChart').getContext('2d');
+            new Chart(severityCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Gemini Inconsistency', 'Video Quality Flaws', 'CPU/GPU Drag', 'AirPods Static (Hardware)'],
+                    datasets: [{
+                        label: 'Severity Score (out of 10)',
+                        data: [9, 8, 6, 10], /* Updated data to reflect new priorities */
+                        backgroundColor: 'rgba(220, 38, 38, 0.2)',
+                        borderColor: 'rgba(220, 38, 38, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(220, 38, 38, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(220, 38, 38, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    ...chartJsConfig,
+                    scales: {
+                        r: {
+                            ...chartJsConfig.scales.r,
+                            min: 0,
+                            max: 10
+                        }
+                    }
+                }
+            });
+
+            const batteryCtx = document.getElementById('batteryChart').getContext('2d');
+            new Chart(batteryCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Pixel 10', 'iPhone 15 Pro'],
+                    datasets: [{
+                        label: 'Average Daily Charges Required',
+                        data: [1, 2],
+                        backgroundColor: [
+                            'rgba(22, 163, 74, 0.7)',
+                            'rgba(220, 38, 38, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(22, 163, 74, 1)',
+                            'rgba(220, 38, 38, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    ...chartJsConfig,
+                    scales: {
+                        x: {
+                            ...chartJsConfig.scales.x,
+                            beginAtZero: true,
+                            ticks: {
+                                ...chartJsConfig.scales.x.ticks,
+                                stepSize: 1
+                            }
+                        },
+                        y: { ...chartJsConfig.scales.y }
+                    },
+                    plugins: {
+                        ...chartJsConfig.plugins,
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            const tabLinks = document.querySelectorAll('.tab-link');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    const targetId = link.getAttribute('data-tab-target');
+                    
+                    tabLinks.forEach(item => item.classList.remove('active'));
+                    link.classList.add('active');
+
+                    tabContents.forEach(content => {
+                        if (content.id === targetId) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            const accordionToggles = document.querySelectorAll('.accordion-toggle');
+            accordionToggles.forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const content = toggle.nextElementSibling;
+                    const icon = toggle.querySelector('.accordion-icon');
+                    content.classList.toggle('hidden');
+                    if (content.classList.contains('hidden')) {
+                        icon.textContent = '+';
+                    } else {
+                        icon.textContent = '−';
+                    }
+                });
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const targetId = link.getAttribute('data-target');
+                    // Only prevent default and scroll for anchor links (those with data-target)
+                    // Allow regular href links (like full-review.html) to work normally
+                    if (targetId) {
+                        e.preventDefault();
+                        document.getElementById(targetId).scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                    // If no data-target, let the href work normally (don't prevent default)
+                });
+            });
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.toggle('active', link.getAttribute('data-target') === entry.target.id);
+                        });
+                    }
+                });
+            }, { rootMargin: '-20% 0px -70% 0px', threshold: 0.1 });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>
+
