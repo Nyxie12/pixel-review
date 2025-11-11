@@ -33,10 +33,18 @@
             @apply text-blue-600 font-semibold border-b-2 border-blue-600;
         }
         .tab-link {
-            @apply px-4 py-2 text-lg font-medium text-neutral-600 border-b-2 border-transparent hover:text-blue-600 hover:border-blue-300 transition-all duration-200;
+            @apply px-4 py-2 text-base sm:text-lg font-medium text-neutral-600 border-b-2 border-transparent hover:text-blue-600 hover:border-blue-300 transition-all duration-200;
+            margin: 0 0.5rem;
         }
         .tab-link.active {
             @apply text-blue-600 border-blue-600;
+        }
+        @media (max-width: 640px) {
+            .tab-link {
+                margin: 0;
+                width: 100%;
+                text-align: center;
+            }
         }
         /* Full Review Section Typography */
         #full-review-content {
@@ -162,9 +170,9 @@
                 Despite the positives, the daily user experience rapidly declined. This section details the critical failures, which are separated into two categories: pervasive software instability and critical hardware/media compatibility.
             </p>
             
-            <nav class="flex justify-center border-b border-neutral-300 mb-8">
-                <button class="tab-link active" data-tab-target="softwareTab">Software Instability & CPU/GPU</button>
-                <button class="tab-link" data-tab-target="hardwareTab">Critical Media & Hardware Failure</button>
+            <nav class="flex flex-col sm:flex-row justify-center border-b border-neutral-300 mb-8 gap-2 sm:gap-0">
+                <button class="tab-link active whitespace-nowrap" data-tab-target="softwareTab">Software Instability & CPU/GPU</button>
+                <button class="tab-link whitespace-nowrap" data-tab-target="hardwareTab">Critical Media & Hardware Failure</button>
             </nav>
 
             <div id="softwareTab" class="tab-content">
@@ -228,12 +236,50 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="flex flex-col items-center">
                                 <h4 class="font-bold text-xl mb-2">iPhone 15 Pro (Fluid Baseline)</h4>
-                                <video controls class="w-full rounded-lg shadow-md max-w-md" src="videos/Iphone.MOV" type="video/quicktime">Your browser does not support the video tag.</video>
+                                <div class="w-full max-w-md">
+                                    <video 
+                                        id="iphone-video" 
+                                        controls 
+                                        class="w-full rounded-lg shadow-md" 
+                                        preload="metadata">
+                                        <source src="videos/Iphone.mp4" type="video/mp4">
+                                        <source src="videos/iphone.mp4" type="video/mp4">
+                                        <source src="videos/Iphone.MOV" type="video/quicktime">
+                                        <source src="videos/iphone.webm" type="video/webm">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <div id="iphone-video-placeholder" class="hidden bg-neutral-100 border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center">
+                                        <p class="text-neutral-600 mb-2"><strong>Video not available</strong></p>
+                                        <p class="text-sm text-neutral-500">Please add <code class="bg-white px-2 py-1 rounded">videos/iphone.mp4</code> or <code class="bg-white px-2 py-1 rounded">videos/Iphone.MOV</code> to the videos folder.</p>
+                                    </div>
+                                </div>
                             </div>
                             <div class="flex flex-col items-center">
                                 <h4 class="font-bold text-xl mb-2">Pixel 10 (Processing Flaws)</h4>
-                                <video controls class="w-full rounded-lg shadow-md max-w-md" src="videos/pxl.mp4" type="video/mp4">Your browser does not support the video tag.</video>
+                                <div class="w-full max-w-md">
+                                    <video 
+                                        id="pixel-video" 
+                                        controls 
+                                        class="w-full rounded-lg shadow-md" 
+                                        preload="metadata">
+                                        <source src="videos/pxl.mp4" type="video/mp4">
+                                        <source src="videos/pixel.mp4" type="video/mp4">
+                                        <source src="videos/pxl.webm" type="video/webm">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <div id="pixel-video-placeholder" class="hidden bg-neutral-100 border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center">
+                                        <p class="text-neutral-600 mb-2"><strong>Video not available</strong></p>
+                                        <p class="text-sm text-neutral-500">Please add <code class="bg-white px-2 py-1 rounded">videos/pxl.mp4</code> or <code class="bg-white px-2 py-1 rounded">videos/pixel.mp4</code> to the videos folder.</p>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+                        <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg max-w-4xl mx-auto">
+                            <p class="text-sm text-blue-800">
+                                <strong>💡 Video Setup:</strong> To display the comparison videos, add your video files to the <code class="bg-blue-100 px-2 py-1 rounded">videos/</code> folder. 
+                                Supported formats: MP4 (recommended), MOV, or WebM. 
+                                If videos are missing, placeholder messages will appear above.
+                            </p>
                         </div>
                     </div>
 
@@ -513,6 +559,44 @@
             sections.forEach(section => {
                 observer.observe(section);
             });
+
+            // Video error handling - show placeholder if video fails to load
+            function handleVideoError(videoElement, placeholderElement) {
+                if (!videoElement || !placeholderElement) return;
+                
+                const checkVideo = () => {
+                    // If video has an error or can't load, show placeholder
+                    if (videoElement.error) {
+                        videoElement.classList.add('hidden');
+                        placeholderElement.classList.remove('hidden');
+                        return;
+                    }
+                    
+                    // Check if video source is available
+                    videoElement.addEventListener('error', () => {
+                        videoElement.classList.add('hidden');
+                        placeholderElement.classList.remove('hidden');
+                    }, { once: true });
+                    
+                    // Fallback: check after video tries to load
+                    videoElement.addEventListener('loadeddata', () => {
+                        // Video loaded successfully, ensure placeholder is hidden
+                        placeholderElement.classList.add('hidden');
+                    }, { once: true });
+                };
+                
+                // Try to load video and check after a delay
+                videoElement.load();
+                setTimeout(checkVideo, 500);
+            }
+
+            const iphoneVideo = document.getElementById('iphone-video');
+            const pixelVideo = document.getElementById('pixel-video');
+            const iphonePlaceholder = document.getElementById('iphone-video-placeholder');
+            const pixelPlaceholder = document.getElementById('pixel-video-placeholder');
+
+            handleVideoError(iphoneVideo, iphonePlaceholder);
+            handleVideoError(pixelVideo, pixelPlaceholder);
         });
     </script>
 </body>
